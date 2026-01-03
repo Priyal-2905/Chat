@@ -101,6 +101,7 @@ export async function login(req, res) {
     res.status(500).json({ message: "Server Error" });
   }
 }
+
 export async function logout(req, res) {
   res.clearCookie("jwt");
   res.status(200).json({ success: true, message: "Logout Succesfull" });
