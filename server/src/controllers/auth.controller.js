@@ -1,6 +1,6 @@
 import User from "../models/user.model.js";
 import jwt from "jsonwebtoken";
-import { createStreamUser } from "../lib/stream.js";
+import { upsertStreamUser } from "../lib/stream.js";
 
 export async function signup(req, res) {
   const { email, password, fullName } = req.body;
@@ -40,7 +40,7 @@ export async function signup(req, res) {
 
     //Creating user in stream as well
     try {
-      await createStreamUser({
+      await upsertStreamUser({
         id: newUser._id.toString(),
         name: newUser.fullName,
         image: newUser.profilePic || "",
@@ -104,4 +104,46 @@ export async function login(req, res) {
 export async function logout(req, res) {
   res.clearCookie("jwt");
   res.status(200).json({ success: true, message: "Logout Succesfull" });
+}
+
+export async function onboard(req,res){
+  try {
+    const userId = req.user._id;
+    const {fullName,bio,location} = req.body;
+
+    if(!fullName || !bio || !location){
+      return res.status(400).json({
+
+        message : "All fields are required",
+        missingFields : [
+          !fullName && "fullname",
+          !bio && "bio",
+          !location && "location",
+        ].filter(Boolean),
+      })
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(userId,{
+      ...req.body,
+      isOnboarded : true
+    },{new:true})
+
+    if(!updatedUser) return res.status(401).json({message : "User not found"});
+
+    try {
+      await upsertStreamUser({
+        id : updatedUser._id.toString(),
+        name : updatedUser.fullName,
+        image : updatedUser.profilePic ||" ",
+      })
+      console.log(`stream user updated after onboarding for ${updatedUser.fullName}`);
+      
+    } catch (StreamError) {
+      console.log("Error updating stream during onboarding",StreamError.message);
+    }
+
+    res.status(200).json({success : true,user : updatedUser})
+  } catch (error) {
+    
+  }
 }
