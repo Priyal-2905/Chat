@@ -29,9 +29,9 @@ const userSchema = new mongoose.Schema({
         type:String,
         default:""
     },
-    profileComp:{
-        type:Boolean,
-        default:false
+    isOnboarded: {
+      type: Boolean,
+      default: false,
     },
     friends:[
         {
