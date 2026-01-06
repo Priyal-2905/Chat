@@ -1,14 +1,19 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getOutgoingFriendReqs, getRecommendedUsers ,getUserFriends, sendFriendRequest,} from "../lib/api";
-import { useEffect ,useState} from "react";
+import { useEffect, useState } from "react";
+import {
+  getOutgoingFriendReqs,
+  getRecommendedUsers,
+  getUserFriends,
+  sendFriendRequest,
+} from "../lib/api";
 import { Link } from "react-router";
 import { CheckCircleIcon, MapPinIcon, UserPlusIcon, UsersIcon } from "lucide-react";
 import FriendCard from "../components/FriendCard";
 import NoFriendsFound from "../components/NoFriendsFound";
+import toast from "react-hot-toast"
 
-
- const HomePage = () => {
-   const queryClient = useQueryClient();
+const HomePage = () => {
+  const queryClient = useQueryClient();
   const [outgoingRequestsIds, setOutgoingRequestsIds] = useState(new Set());
 
   const { data: friends = [], isLoading: loadingFriends } = useQuery({
@@ -26,10 +31,13 @@ import NoFriendsFound from "../components/NoFriendsFound";
     queryFn: getOutgoingFriendReqs,
   });
 
-  //Refetch query when a new request is sent
-  const { mutate: sendRequestMutation, isPending } = useMutation({
+  const { mutate: sendRequestMutation, isPending ,error} = useMutation({
     mutationFn: sendFriendRequest,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["outgoingFriendReqs"] }),
+    onError : (err)=>{
+      const message = err?.response?.data?.message ||"something went wrong";
+      toast.error(message);
+    }
   });
 
   useEffect(() => {
@@ -43,8 +51,7 @@ import NoFriendsFound from "../components/NoFriendsFound";
   }, [outgoingFriendReqs]);
 
   return (
- 
-   <div className="p-4 sm:p-6 lg:p-8">
+     <div className="p-4 sm:p-6 lg:p-8">
       <div className="container mx-auto space-y-10">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Your Friends</h2>
@@ -72,14 +79,14 @@ import NoFriendsFound from "../components/NoFriendsFound";
           <div className="mb-6 sm:mb-8">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
-                <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Meet New people</h2>
+                <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Meet New Learners</h2>
                 <p className="opacity-70">
-                  Discover new friends everyday
+                  Discover perfect language exchange partners based on your profile
                 </p>
               </div>
             </div>
           </div>
-
+           
           {loadingUsers ? (
             <div className="flex justify-center py-12">
               <span className="loading loading-spinner loading-lg" />
@@ -88,7 +95,7 @@ import NoFriendsFound from "../components/NoFriendsFound";
             <div className="card bg-base-200 p-6 text-center">
               <h3 className="font-semibold text-lg mb-2">No recommendations available</h3>
               <p className="text-base-content opacity-70">
-                Check back later!
+                Check back later for new language partners!
               </p>
             </div>
           ) : (
@@ -111,6 +118,7 @@ import NoFriendsFound from "../components/NoFriendsFound";
                           <h3 className="font-semibold text-lg">{user.fullName}</h3>
                           {user.location && (
                             <div className="flex items-center text-xs opacity-70 mt-1">
+                              <MapPinIcon className="size-3 mr-1" />
                               {user.location}
                             </div>
                           )}
@@ -149,7 +157,7 @@ import NoFriendsFound from "../components/NoFriendsFound";
         </section>
       </div>
     </div>
-  )
-}
+  );
+};
 
 export default HomePage;
