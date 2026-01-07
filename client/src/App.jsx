@@ -12,42 +12,53 @@ import PageLoader from "./components/PageLoader.jsx";
 import useAuthUser from "./hooks/useAuthUser.js";
 import Layout from "./components/Layout.jsx";
 
-
- const App = () => {
-  
+const App = () => {
   //tanstack query
-  const {isLoading,authUser} = useAuthUser();
+  const { isLoading, authUser } = useAuthUser();
   const isAuthenticated = Boolean(authUser);
   const isOnboarded = authUser?.isOnboarded;
-  if(isLoading){return (<PageLoader/>)}
+  if (isLoading) {
+    return <PageLoader />;
+  }
 
   return (
-    <div className=' h-screen ' data-theme = "emerald">
+    <div className=" h-screen " data-theme="emerald">
       <Routes>
-        <Route path="/" element = {
-         isAuthenticated && isOnboarded ? (
-          <Layout showSidebar={true} >
-            <HomePage/>
-          </Layout>
-          
-        ):(
-              <Navigate to = {!isAuthenticated ?"login":"onboarding"}/>
-          ) }/> 
+        <Route
+          path="/"
+          element={
+            isAuthenticated && isOnboarded ? (
+              <Layout showSidebar={true}>
+                <HomePage />
+              </Layout>
+            ) : (
+              <Navigate to={!isAuthenticated ? "login" : "onboarding"} />
+            )
+          }
+        />
         <Route
           path="/signup"
           element={
-            !isAuthenticated ? <SignUpPage /> : <Navigate to={isOnboarded ? "/" : "/onboarding"} />
-          } />
-        
-        
-        <Route
-          path="/login"
-          element={
-            !isAuthenticated ? <LoginPage /> : <Navigate to={isOnboarded ? "/" : "/onboarding"} />
+            !isAuthenticated ? (
+              <SignUpPage />
+            ) : (
+              <Navigate to={isOnboarded ? "/" : "/onboarding"} />
+            )
           }
         />
 
-      <Route
+        <Route
+          path="/login"
+          element={
+            !isAuthenticated ? (
+              <LoginPage />
+            ) : (
+              <Navigate to={isOnboarded ? "/" : "/onboarding"} />
+            )
+          }
+        />
+
+        <Route
           path="/notifications"
           element={
             isAuthenticated && isOnboarded ? (
@@ -59,10 +70,19 @@ import Layout from "./components/Layout.jsx";
             )
           }
         />
-        
-        <Route path="/call" element = {isAuthenticated ? <CallPage/>:<Navigate to="/login"/>} />
-        
-      <Route
+
+        <Route
+          path="/call/:id"
+          element={
+            isAuthenticated && isOnboarded ? (
+              <CallPage />
+            ) : (
+              <Navigate to={!isAuthenticated ? "/login" : "/onboarding"} />
+            )
+          }
+        />
+
+        <Route
           path="/chat/:id"
           element={
             isAuthenticated && isOnboarded ? (
@@ -88,11 +108,10 @@ import Layout from "./components/Layout.jsx";
             )
           }
         />
-
       </Routes>
       <Toaster />
     </div>
-  )
-}
+  );
+};
 
 export default App;
